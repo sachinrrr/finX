@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/ui/header";
-import { ClerkProvider } from "@clerk/nextjs";
+import ClerkProviderWrapper from "@/components/providers/clerk-provider";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -19,11 +19,11 @@ export default function RootLayout({ children }) {
         <meta name="description" content={metadata.description} />
       </head>
       <body className={inter.className}>
-        <ClerkProvider>
+        <ClerkProviderWrapper>
           <Header />
           <main className="min-h-screen">{children}</main>
           <Toaster richColors />
-        </ClerkProvider>
+        </ClerkProviderWrapper>
       </body>
     </html>
   );
