@@ -1,5 +1,4 @@
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "./button";
 import {  LayoutDashboard, Plus } from "lucide-react";
@@ -10,51 +9,51 @@ const Header = async () => {
   await checkUser();
   
   return (
-    <div className="fixed top-0 w-full bg-black/90 backdrop-blur-md z-50 border-b">
+    <div className="fixed top-0 w-full bg-black/95 backdrop-blur-xl z-50 border-b border-white/10">
       <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
         
         {/* Logo */}
-        <Link href="/">
-          <Image 
-            src="/finx.logo.png"
-            alt="finx logo"
-            height={60}
-            width={200}
-            className="h-8 w-auto object-contain"
-          />
+        <Link href="/" className="flex items-center group">
+          <span className="text-3xl font-black gradient-title tracking-tighter group-hover:scale-105 transition-transform duration-200">
+            FINX
+          </span>
         </Link>
 
         {/* Authentication Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-3">
           <SignedIn>
-            <Link href={"/dashboard"} className="text-gray-800 hover:text-pink-800 flex items-center gap-2">
-              <Button className="bg-gray-300 hover:bg-pink-700">
-                <LayoutDashboard size={18} className="text-black"/>
-                <span className="hidden md:inline text-black">Dashboard</span>
+            <Link href={"/dashboard"}>
+              <Button className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 text-white transition-all duration-300 backdrop-blur-md">
+                <LayoutDashboard size={18} />
+                <span className="hidden md:inline ml-2">Dashboard</span>
               </Button>
             </Link>
 
-            <Link href={"/transaction/create"}>
-              <Button className="bg-gray-300 hover:bg-pink-700 flex items-center gap-2">
-                <Plus size={18} className="text-black"/>
-                <span className="hidden md:inline text-black">Add Transaction</span>
+            <Link href={"/transactions/create"}>
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg shadow-purple-500/25 transition-all duration-300">
+                <Plus size={18} />
+                <span className="hidden md:inline ml-2">Add Transaction</span>
               </Button>
             </Link>
           </SignedIn>
+          
           <SignedOut>
             <SignInButton>
-              <Button variant="outline">Login</Button>
+              <Button className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 text-white transition-all duration-300 backdrop-blur-md">
+                Login
+              </Button>
             </SignInButton>
             <SignUpButton>
-              <Button variant="outline">Sign up</Button>
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg shadow-purple-500/25 transition-all duration-300">
+                Sign Up
+              </Button>
             </SignUpButton>
           </SignedOut>  
 
           <SignedIn>
             <UserButton appearance={{
               elements: {
-                avatarBox: "w-9 h-9",
-
+                avatarBox: "w-10 h-10 ring-2 ring-white/10 hover:ring-purple-500/50 transition-all",
               },
             }}/>
           </SignedIn>
