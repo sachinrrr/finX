@@ -6,12 +6,12 @@ import {  LayoutDashboard, Plus } from "lucide-react";
 
 const Header = () => {
   return (
-    <div className="fixed top-0 w-full bg-white/90 backdrop-blur z-50 border-b border-gray-200">
+    <div className="fixed top-0 w-full bg-background/80 backdrop-blur z-50 border-b border-border">
       <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
         
         {/* Logo */}
         <Link href="/" className="flex items-center group">
-          <span className="text-2xl font-semibold tracking-tight text-slate-900 group-hover:text-slate-700 transition-colors duration-200">
+          <span className="text-2xl font-semibold tracking-tight text-foreground group-hover:text-foreground/80 transition-colors duration-200">
             FINX
           </span>
         </Link>
@@ -20,7 +20,7 @@ const Header = () => {
         <div className="flex items-center gap-3">
           <SignedIn>
             <Link href={"/dashboard"}>
-              <Button variant="outline" className="text-slate-900">
+              <Button variant="outline">
                 <LayoutDashboard size={18} />
                 <span className="hidden md:inline ml-2">Dashboard</span>
               </Button>
@@ -36,7 +36,7 @@ const Header = () => {
           
           <SignedOut>
             <SignInButton>
-              <Button variant="outline" className="text-slate-900">
+              <Button variant="outline">
                 Login
               </Button>
             </SignInButton>
@@ -50,7 +50,7 @@ const Header = () => {
           <SignedIn>
             <UserButton appearance={{
               elements: {
-                avatarBox: "w-10 h-10 ring-1 ring-gray-200 hover:ring-gray-300 transition-all",
+                avatarBox: "w-10 h-10 ring-1 ring-border hover:ring-ring transition-all",
               },
             }}/>
           </SignedIn>
