@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { ArrowRight, TrendingUp, Shield, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 
 const HeroSection = () => {
@@ -37,31 +37,6 @@ return (
           </div>
           
           {/* Feature highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mt-16 animate-fade-in-up animation-delay-600">
-            <div className="group bg-card rounded-lg p-6 border border-border hover:bg-muted transition-colors">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 mx-auto border border-border bg-card">
-                <TrendingUp className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold tracking-tight text-foreground mb-2">Cash flow clarity</h3>
-              <p className="text-sm text-muted-foreground">See inflows, outflows, and runway at a glance.</p>
-            </div>
-            
-            <div className="group bg-card rounded-lg p-6 border border-border hover:bg-muted transition-colors">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 mx-auto border border-border bg-card">
-                <Shield className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold tracking-tight text-foreground mb-2">Audit-ready</h3>
-              <p className="text-sm text-muted-foreground">Consistent categorization and clean history.</p>
-            </div>
-            
-            <div className="group bg-card rounded-lg p-6 border border-border hover:bg-muted transition-colors">
-              <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 mx-auto border border-border bg-card">
-                <Zap className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="font-semibold tracking-tight text-foreground mb-2">Insights that matter</h3>
-              <p className="text-sm text-muted-foreground">Surface variance and trends without noise.</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
