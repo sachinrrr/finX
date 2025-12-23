@@ -30,34 +30,34 @@ import {
   // Features Data
   export const featuresData = [
     {
-      icon: <BarChart3 className="h-8 w-8 text-blue-400" />,
+      icon: <BarChart3 className="h-8 w-8 text-slate-700" />,
       title: "Advanced Analytics",
       description:
         "Get detailed insights into your spending patterns with AI-powered analytics",
     },
     {
-      icon: <Receipt className="h-8 w-8 text-purple-400" />,
+      icon: <Receipt className="h-8 w-8 text-slate-700" />,
       title: "Smart Receipt Scanner",
       description:
         "Extract data automatically from receipts using advanced AI technology",
     },
     {
-      icon: <PieChart className="h-8 w-8 text-pink-400" />,
+      icon: <PieChart className="h-8 w-8 text-slate-700" />,
       title: "Budget Planning",
       description: "Create and manage budgets with intelligent recommendations",
     },
     {
-      icon: <CreditCard className="h-8 w-8 text-blue-400" />,
+      icon: <CreditCard className="h-8 w-8 text-slate-700" />,
       title: "Multi-Account Support",
       description: "Manage multiple accounts and credit cards in one place",
     },
     {
-      icon: <Globe className="h-8 w-8 text-purple-400" />,
+      icon: <Globe className="h-8 w-8 text-slate-700" />,
       title: "Multi-Currency",
       description: "Support for multiple currencies with real-time conversion",
     },
     {
-      icon: <Zap className="h-8 w-8 text-pink-400" />,
+      icon: <Zap className="h-8 w-8 text-emerald-700" />,
       title: "Automated Insights",
       description: "Get automated financial insights and recommendations",
     },
@@ -66,19 +66,19 @@ import {
   // How It Works Data
   export const howItWorksData = [
     {
-      icon: <CreditCard className="h-8 w-8 text-blue-400" />,
+      icon: <CreditCard className="h-8 w-8 text-slate-700" />,
       title: "1. Create Your Account",
       description:
         "Get started in minutes with our simple and secure sign-up process",
     },
     {
-      icon: <BarChart3 className="h-8 w-8 text-purple-400" />,
+      icon: <BarChart3 className="h-8 w-8 text-slate-700" />,
       title: "2. Track Your Spending",
       description:
         "Automatically categorize and track your transactions in real-time",
     },
     {
-      icon: <PieChart className="h-8 w-8 text-pink-400" />,
+      icon: <PieChart className="h-8 w-8 text-emerald-700" />,
       title: "3. Get Insights",
       description:
         "Receive AI-powered insights and recommendations to optimize your finances",
@@ -88,24 +88,24 @@ import {
   // Testimonials Data
   export const testimonialsData = [
     {
-      name: "Sarah Johnson",
-      role: "Small Business Owner",
-      image: "https://randomuser.me/api/portraits/women/75.jpg",
+      name: "Maya Chen",
+      role: "CFO at TechFlow",
+      image: "",
       quote:
-        "Welth has transformed how I manage my business finances. The AI insights have helped me identify cost-saving opportunities I never knew existed.",
+        "FinX replaced our ad-hoc spreadsheets and made month-end reviews faster. We can spot margin drift early and plan with confidence.",
     },
     {
-      name: "Michael Chen",
-      role: "Freelancer",
-      image: "https://randomuser.me/api/portraits/men/75.jpg",
+      name: "Daniel Ruiz",
+      role: "Finance Lead at Northbridge Studio",
+      image: "",
       quote:
-        "The receipt scanning feature saves me hours each month. Now I can focus on my work instead of manual data entry and expense tracking.",
+        "The dashboards are calm and precise. FinX gives us clean cash-flow visibility and the audit trail we need for Q4 planning.",
     },
     {
-      name: "Emily Rodriguez",
-      role: "Financial Advisor",
-      image: "https://randomuser.me/api/portraits/women/74.jpg",
+      name: "Aisha Patel",
+      role: "COO at Beacon Logistics",
+      image: "",
       quote:
-        "I recommend Welth to all my clients. The multi-currency support and detailed analytics make it perfect for international investors.",
+        "We tightened spend controls without slowing teams down. FinX helped us track ROI by category and forecast runway more accurately.",
     },
   ];
