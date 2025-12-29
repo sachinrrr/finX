@@ -158,16 +158,46 @@ export function DashboardOverview({ accounts, transactions }) {
             </p>
           ) : (
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" className="relative">
                 <PieChart>
                   <Pie
                     data={pieChartData}
                     cx="50%"
                     cy="50%"
+                    innerRadius={60}
                     outerRadius={80}
-                    fill="#8884d8"
+                    paddingAngle={5}
                     dataKey="value"
-                    label={({ name, value }) => `${name}: $${value.toFixed(2)}`}
+                    labelLine={false}
+                    label={({ 
+                      cx,
+                      cy,
+                      midAngle,
+                      innerRadius,
+                      outerRadius,
+                      percent,
+                      index,
+                      name,
+                      value
+                    }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = 25 + innerRadius + (outerRadius - innerRadius);
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          fill={COLORS[index % COLORS.length]}
+                          textAnchor={x > cx ? 'start' : 'end'}
+                          dominantBaseline="central"
+                          className="text-xs font-medium"
+                        >
+                          {`${name} (${(percent * 100).toFixed(0)}%)`}
+                        </text>
+                      );
+                    }}
                   >
                     {pieChartData.map((entry, index) => (
                       <Cell
@@ -177,12 +207,42 @@ export function DashboardOverview({ accounts, transactions }) {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => `$${value.toFixed(2)}`}
+                    formatter={(value, name) => [
+                      `$${parseFloat(value).toFixed(2)}`,
+                      name
+                    ]}
                     contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "var(--radius)",
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      fontSize: '0.875rem',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                      color: 'hsl(var(--foreground))',
+                      backdropFilter: 'blur(4px)'
                     }}
+                    itemStyle={{
+                      padding: '4px 0',
+                      margin: 0,
+                      textTransform: 'capitalize',
+                      color: 'hsl(var(--foreground))',
+                      fontSize: '0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                    labelStyle={{
+                      fontWeight: 700,
+                      marginBottom: '4px',
+                      textTransform: 'capitalize',
+                      color: 'hsl(var(--primary))',
+                      fontSize: '0.95rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                    itemSorter={(item) => -item.value}
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                   />
                   <Legend />
                 </PieChart>
