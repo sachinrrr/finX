@@ -4,6 +4,7 @@ import { BarLoader } from "react-spinners";
 import { TransactionTable } from "../_components/transaction-table";
 import { notFound } from "next/navigation";
 import { AccountChart } from "../_components/account-chart";
+import { formatMoney } from "@/lib/money";
 
 export default async function AccountPage({ params }) {
   const accountData = await getAccountWithTransactions(params.id);
@@ -30,7 +31,7 @@ export default async function AccountPage({ params }) {
 
           <div className="text-right pb-2">
             <div className="text-lg sm:text-xl font-bold gradient-title">
-              ${parseFloat(account.balance).toFixed(2)}
+              {formatMoney(account.balance, account.currency)}
             </div>
             <p className="text-sm text-muted-foreground">
               {account._count.transactions} Transactions
@@ -43,14 +44,14 @@ export default async function AccountPage({ params }) {
       <Suspense
         fallback={<BarLoader className="mt-4" width={"100%"} color="#ec4899" />}
       >
-        <AccountChart transactions={transactions} />
+        <AccountChart transactions={transactions} currency={account.currency} />
       </Suspense>
 
       {/* Transactions Table */}
       <Suspense
         fallback={<BarLoader className="mt-4" width={"100%"} color="#ec4899" />}
       >
-        <TransactionTable transactions={transactions} />
+        <TransactionTable transactions={transactions} currency={account.currency} />
       </Suspense>
     </div>
   );

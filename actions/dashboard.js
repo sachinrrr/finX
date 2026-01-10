@@ -12,6 +12,10 @@ const serializeTransaction = (obj) => {
   if (obj.amount) {
     serialized.amount = obj.amount.toNumber();
   }
+  // Ensure currency is included in the serialized output
+  if (obj.currency) {
+    serialized.currency = obj.currency;
+  }
   return serialized;
 };
 

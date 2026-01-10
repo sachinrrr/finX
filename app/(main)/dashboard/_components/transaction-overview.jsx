@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/money";
 
 const COLORS = [
   "#FF6B6B",
@@ -75,6 +76,9 @@ export function DashboardOverview({ accounts, transactions }) {
       value: amount,
     })
   );
+
+  const selectedAccountCurrency =
+    accounts?.find((a) => a.id === selectedAccountId)?.currency || "USD";
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -134,7 +138,7 @@ export function DashboardOverview({ accounts, transactions }) {
                       ) : (
                         <ArrowUpRight className="mr-1 h-4 w-4" />
                       )}
-                      ${transaction.amount.toFixed(2)}
+                      {formatMoney(transaction.amount, selectedAccountCurrency)}
                     </div>
                   </div>
                 </div>
@@ -208,7 +212,7 @@ export function DashboardOverview({ accounts, transactions }) {
                   </Pie>
                   <Tooltip
                     formatter={(value, name) => [
-                      `$${parseFloat(value).toFixed(2)}`,
+                      formatMoney(value, selectedAccountCurrency),
                       name
                     ]}
                     contentStyle={{

@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatMoney } from "@/lib/money";
 import {
   Select,
   SelectContent,
@@ -29,7 +30,7 @@ const DATE_RANGES = {
   ALL: { label: "All Time", days: null },
 };
 
-export function AccountChart({ transactions }) {
+export function AccountChart({ transactions, currency = "USD" }) {
   const [dateRange, setDateRange] = useState("1M");
 
   const filteredData = useMemo(() => {
@@ -99,13 +100,13 @@ export function AccountChart({ transactions }) {
           <div className="text-center">
             <p className="text-muted-foreground">Total Income</p>
             <p className="text-lg font-bold text-green-500">
-              ${totals.income.toFixed(2)}
+              {formatMoney(totals.income, currency)}
             </p>
           </div>
           <div className="text-center">
             <p className="text-muted-foreground">Total Expenses</p>
             <p className="text-lg font-bold text-red-500">
-              ${totals.expense.toFixed(2)}
+              {formatMoney(totals.expense, currency)}
             </p>
           </div>
           <div className="text-center">
@@ -117,7 +118,7 @@ export function AccountChart({ transactions }) {
                   : "text-red-500"
               }`}
             >
-              ${(totals.income - totals.expense).toFixed(2)}
+              {formatMoney(totals.income - totals.expense, currency)}
             </p>
           </div>
         </div>
@@ -125,7 +126,7 @@ export function AccountChart({ transactions }) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={filteredData}
-              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+              margin={{ top: 10, right: 10, left: 28, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
@@ -138,15 +139,21 @@ export function AccountChart({ transactions }) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value}`}
+                width={88}
+                tickMargin={10}
+                tickFormatter={(value) => formatMoney(value, currency)}
               />
               <Tooltip
-                formatter={(value) => [`$${value}`, undefined]}
+                formatter={(value) => [formatMoney(value, currency), undefined]}
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
+                  color: "hsl(var(--popover-foreground))",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "var(--radius)",
                 }}
+                cursor={{ fill: "hsl(var(--muted))", opacity: 0.35 }}
+                itemStyle={{ color: "hsl(var(--popover-foreground))" }}
+                labelStyle={{ color: "hsl(var(--muted-foreground))" }}
               />
               <Legend />
               <Bar

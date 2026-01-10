@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { CurrencyPicker } from "@/components/currency-picker";
 import { createAccount } from "@/actions/dashboard";
 import { accountSchema } from "@/app/lib/schema";
 
@@ -43,6 +44,7 @@ export function CreateAccountDrawer({ children }) {
       name: "",
       type: "CURRENT",
       balance: "",
+      currency: "USD",
       isDefault: false,
     },
   });
@@ -138,6 +140,22 @@ export function CreateAccountDrawer({ children }) {
               />
               {errors.balance && (
                 <p className="text-sm text-red-500">{errors.balance.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="currency"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Currency
+              </label>
+              <CurrencyPicker
+                value={watch("currency")}
+                onChange={(value) => setValue("currency", value, { shouldDirty: true })}
+              />
+              {errors.currency && (
+                <p className="text-sm text-red-500">{errors.currency.message}</p>
               )}
             </div>
 
