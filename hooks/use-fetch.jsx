@@ -9,13 +9,25 @@ const useFetch = (cb) => {
   const fn = async (...args) => {
     setLoading(true);
     setError(null);
+    setData(undefined);
 
     try {
       const response = await cb(...args);
+
+      if (
+        response &&
+        typeof response === "object" &&
+        "success" in response &&
+        response.success === false
+      ) {
+        throw new Error(response.error || "Request failed");
+      }
+
       setData(response);
       setError(null);
     } catch (error) {
       setError(error);
+      setData(undefined);
       toast.error(error.message);
     } finally {
       setLoading(false);

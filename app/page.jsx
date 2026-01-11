@@ -1,7 +1,6 @@
 import HeroSection from "@/components/hero";
 import Footer from "@/components/footer";
-import { featuresData, howItWorksData, testimonialsData } from "@/data/landing";
-import { Star } from "lucide-react";
+import { featuresData, howItWorksData } from "@/data/landing";
 
 export default function Home() {
   return (
@@ -77,53 +76,6 @@ export default function Home() {
                 
                 <h3 className="text-xl font-semibold tracking-tight mb-4 text-foreground">{step.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-background">
-        {/* Background effects */}
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4 text-foreground">
-              What Our Users Say
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Trusted by operators who want clarity, control, and a clean audit trail.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonialsData.map((testimonial, index) => (
-              <div
-                key={index}
-                className="group relative p-8 rounded-lg bg-card border border-border hover:bg-muted transition-colors"
-              >
-                {/* Star rating */}
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-muted text-muted-foreground" />
-                  ))}
-                </div>
-                
-                {/* Quote */}
-                <p className="text-foreground/90 leading-relaxed mb-6">
-                  “{testimonial.quote}”
-                </p>
-                
-                {/* User info */}
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full border border-border bg-card flex items-center justify-center text-sm font-semibold text-foreground">
-                    {String(testimonial.name || "").split(" ").map((p) => p[0]).slice(0, 2).join("")}
-                  </div>
-                  <div>
-                    <div className="font-semibold tracking-tight text-foreground">{testimonial.name}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.role}</div>
-                  </div>
-                </div>
               </div>
             ))}
           </div>

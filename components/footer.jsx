@@ -7,40 +7,38 @@ const Footer = () => {
   return (
     <footer className="relative bg-background border-t border-border overflow-hidden">
       <div className="container mx-auto px-4 py-16 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Brand Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <h3 className="text-xl font-semibold tracking-tight text-foreground">FINX</h3>
             </Link>
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-md">
               A secure, minimal finance workspace built for clear decisions.
             </p>
-            {/* Social Links */}
             <div className="flex gap-4">
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
                 aria-label="Twitter"
               >
                 <Twitter className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
                 aria-label="GitHub"
               >
                 <Github className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
               </a>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
                 aria-label="Email"
               >
@@ -49,106 +47,9 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h4 className="text-foreground font-semibold tracking-tight mb-4">Product</h4>
-            <ul className="space-y-3">
-              <li>
-                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Updates
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company Links */}
-          <div>
-            <h4 className="text-foreground font-semibold tracking-tight mb-4">Company</h4>
-            <ul className="space-y-3">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div>
-            <h4 className="text-foreground font-semibold tracking-tight mb-4">Legal</h4>
-            <ul className="space-y-3">
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Cookie Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                  Security
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-border">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-muted-foreground text-sm">
-              © {currentYear} FINX. All rights reserved.
-            </p>
-            <div className="flex gap-6">
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Sitemap
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Accessibility
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
-                Support
-              </Link>
-            </div>
-          </div>
+          <p className="text-muted-foreground text-sm md:text-right">
+            © {currentYear} FINX. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

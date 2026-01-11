@@ -3,21 +3,8 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-
-const serializeTransaction = (obj) => {
-  const serialized = { ...obj };
-  if (obj.balance) {
-    serialized.balance = obj.balance.toNumber();
-  }
-  if (obj.amount) {
-    serialized.amount = obj.amount.toNumber();
-  }
-  // Ensure currency is included in the serialized output
-  if (obj.currency) {
-    serialized.currency = obj.currency;
-  }
-  return serialized;
-};
+import { getErrorMessage } from "@/lib/errors";
+import { serializeData } from "@/lib/serialize";
 
 export async function getUserAccounts() {
   try {
@@ -44,13 +31,10 @@ export async function getUserAccounts() {
       },
     });
 
-    // Serialize accounts before sending to client
-    const serializedAccounts = accounts.map(serializeTransaction);
-
-    return serializedAccounts;
+    return { success: true, data: serializeData(accounts) };
   } catch (error) {
-    console.error("Error in getUserAccounts:", error.message);
-    return []; // Return empty array instead of undefined
+    console.error("Error in getUserAccounts:", getErrorMessage(error));
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -70,7 +54,7 @@ export async function createAccount(data) {
     // Convert balance to float before saving
     const balanceFloat = parseFloat(data.balance);
     if (isNaN(balanceFloat)) {
-      throw new Error("Invalid balance amount");
+      return { success: false, error: "Invalid balance amount" };
     }
 
     // Check if this is the user's first account
@@ -101,13 +85,10 @@ export async function createAccount(data) {
       },
     });
 
-    // Serialize the account before returning
-    const serializedAccount = serializeTransaction(account);
-
     revalidatePath("/dashboard");
-    return { success: true, data: serializedAccount };
+    return { success: true, data: serializeData(account) };
   } catch (error) {
-    throw new Error(error.message);
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -130,9 +111,9 @@ export async function getDashboardData() {
       orderBy: { date: "desc" },
     });
 
-    return transactions.map(serializeTransaction);
+    return { success: true, data: serializeData(transactions) };
   } catch (error) {
-    console.error("Error in getDashboardData:", error.message);
-    return []; // Return empty array instead of undefined
+    console.error("Error in getDashboardData:", getErrorMessage(error));
+    return { success: false, error: getErrorMessage(error) };
   }
 }

@@ -214,7 +214,7 @@ WordRotate.displayName = "WordRotate";
 export { WordRotate };
 
 // Demo Hero Section
-export default function HeroSection() {
+export function WordRotateDemoHeroSection() {
   const words = ["track", "manage", "plan", "view", "optimize", "analyze", "monitor", "improve"];
   
   return (

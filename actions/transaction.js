@@ -3,13 +3,14 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Buffer } from "buffer";
-
-const serializeAmount = (obj) => ({
-  ...obj,
-  amount: obj.amount.toNumber(),
-});
+import {
+  extractJsonObject,
+  generateGeminiContent,
+  getGeminiResponseText,
+} from "@/lib/gemini";
+import { getErrorMessage } from "@/lib/errors";
+import { serializeData } from "@/lib/serialize";
 
 let cachedGeminiModels;
 let cachedGeminiModelsAtMs;
@@ -87,54 +88,17 @@ async function resolveGeminiModel(apiKey, { preferVision } = {}) {
   return { apiVersion, model: sorted[0] };
 }
 
-async function generateGeminiContent({ apiKey, apiVersion, model, parts }) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts,
-          },
-        ],
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Gemini generateContent failed (${apiVersion}): ${res.status} ${res.statusText} ${text}`.trim());
-  }
-
-  return await res.json();
-}
-
-function extractJsonObject(text) {
-  const cleanedText = text.replace(/```(?:json)?\n?/gi, "").replace(/```/g, "").trim();
-  const start = cleanedText.indexOf("{");
-  const end = cleanedText.lastIndexOf("}");
-  if (start !== -1 && end !== -1 && end > start) {
-    return cleanedText.slice(start, end + 1);
-  }
-  return cleanedText;
-}
-
 // Create Transaction
 export async function createTransaction(data) {
   try {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { success: false, error: "Unauthorized" };
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (!user) return { success: false, error: "User not found" };
 
     const account = await db.account.findUnique({
       where: {
@@ -143,9 +107,7 @@ export async function createTransaction(data) {
       },
     });
 
-    if (!account) {
-      throw new Error("Account not found");
-    }
+    if (!account) return { success: false, error: "Account not found" };
 
     // Calculate new balance
     const balanceChange = data.type === "EXPENSE" ? -data.amount : data.amount;
@@ -175,44 +137,48 @@ export async function createTransaction(data) {
     revalidatePath("/dashboard");
     revalidatePath(`/account/${transaction.accountId}`);
 
-    return { success: true, data: serializeAmount(transaction) };
+    return { success: true, data: serializeData(transaction) };
   } catch (error) {
-    throw new Error(error.message);
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
 export async function getTransaction(id) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) throw new Error("User not found");
-
-  const transaction = await db.transaction.findUnique({
-    where: {
-      id,
-      userId: user.id,
-    },
-  });
-
-  if (!transaction) throw new Error("Transaction not found");
-
-  return serializeAmount(transaction);
-}
-
-export async function updateTransaction(id, data) {
   try {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { success: false, error: "Unauthorized" };
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
-    if (!user) throw new Error("User not found");
+    if (!user) return { success: false, error: "User not found" };
+
+    const transaction = await db.transaction.findUnique({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!transaction) return { success: false, error: "Transaction not found" };
+
+    return { success: true, data: serializeData(transaction) };
+  } catch (error) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+
+export async function updateTransaction(id, data) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "Unauthorized" };
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) return { success: false, error: "User not found" };
 
     // Get original transaction to calculate balance change
     const originalTransaction = await db.transaction.findUnique({
@@ -225,7 +191,7 @@ export async function updateTransaction(id, data) {
       },
     });
 
-    if (!originalTransaction) throw new Error("Transaction not found");
+    if (!originalTransaction) return { success: false, error: "Transaction not found" };
 
     // Calculate balance changes
     const oldBalanceChange =
@@ -270,9 +236,9 @@ export async function updateTransaction(id, data) {
     revalidatePath("/dashboard");
     revalidatePath(`/account/${data.accountId}`);
 
-    return { success: true, data: serializeAmount(transaction) };
+    return { success: true, data: serializeData(transaction) };
   } catch (error) {
-    throw new Error(error.message);
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -280,15 +246,13 @@ export async function updateTransaction(id, data) {
 export async function getUserTransactions(query = {}) {
   try {
     const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) return { success: false, error: "Unauthorized" };
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (!user) return { success: false, error: "User not found" };
 
     const transactions = await db.transaction.findMany({
       where: {
@@ -303,9 +267,9 @@ export async function getUserTransactions(query = {}) {
       },
     });
 
-    return { success: true, data: transactions };
+    return { success: true, data: serializeData(transactions) };
   } catch (error) {
-    throw new Error(error.message);
+    return { success: false, error: getErrorMessage(error) };
   }
 }
 
@@ -313,12 +277,10 @@ export async function getUserTransactions(query = {}) {
 export async function scanReceipt(file) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not set");
-    }
+    if (!apiKey) return { success: false, error: "GEMINI_API_KEY is not set" };
 
     if (!file || typeof file.arrayBuffer !== "function") {
-      throw new Error("Invalid receipt file");
+      return { success: false, error: "Invalid receipt file" };
     }
 
     // Convert File to ArrayBuffer
@@ -356,10 +318,15 @@ export async function scanReceipt(file) {
         .map((m) => String(m?.name || "").replace(/^models\//, ""))
         .filter(Boolean)
         .slice(0, 12);
+
       if (availableIds.length > 0) {
-        throw new Error(`Set GEMINI_MODEL to one of: ${availableIds.join(", ")}`);
+        return {
+          success: false,
+          error: `Set GEMINI_MODEL to one of: ${availableIds.join(", ")}`,
+        };
       }
-      throw e;
+
+      return { success: false, error: getErrorMessage(e) };
     }
 
     const parts = [
@@ -398,34 +365,33 @@ export async function scanReceipt(file) {
       }
     }
 
-    const text =
-      responseJson?.candidates?.[0]?.content?.parts
-        ?.map((p) => p?.text)
-        .filter(Boolean)
-        .join("\n") || "";
+    const text = getGeminiResponseText(responseJson);
     const cleanedText = extractJsonObject(text);
 
     try {
       const data = JSON.parse(cleanedText);
 
       if (!data || (typeof data === "object" && Object.keys(data).length === 0)) {
-        return null;
+        return { success: true, data: null };
       }
 
       return {
-        amount: typeof data.amount === "number" ? data.amount : parseFloat(data.amount),
-        date: data.date,
-        description: data.description,
-        category: data.category,
-        merchantName: data.merchantName,
+        success: true,
+        data: {
+          amount: typeof data.amount === "number" ? data.amount : parseFloat(data.amount),
+          date: data.date,
+          description: data.description,
+          category: data.category,
+          merchantName: data.merchantName,
+        },
       };
     } catch (parseError) {
       console.error("Error parsing JSON response:", parseError);
-      throw new Error("Invalid response format from Gemini");
+      return { success: false, error: "Invalid response format from Gemini" };
     }
   } catch (error) {
     console.error("Error scanning receipt:", error);
-    throw new Error(error?.message || "Failed to scan receipt");
+    return { success: false, error: getErrorMessage(error, "Failed to scan receipt") };
   }
 }
 

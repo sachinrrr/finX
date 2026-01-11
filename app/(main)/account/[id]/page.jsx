@@ -6,8 +6,15 @@ import { notFound } from "next/navigation";
 import { AccountChart } from "../_components/account-chart";
 import { formatMoney } from "@/lib/money";
 
+export const dynamic = "force-dynamic";
+
 export default async function AccountPage({ params }) {
-  const accountData = await getAccountWithTransactions(params.id);
+  const accountResult = await getAccountWithTransactions(params.id);
+  if (!accountResult?.success) {
+    notFound();
+  }
+
+  const accountData = accountResult.data;
 
   if (!accountData) {
     notFound();

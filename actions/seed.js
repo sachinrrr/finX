@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/prisma";
 import { subDays } from "date-fns";
+import { getErrorMessage } from "@/lib/errors";
 
 const ACCOUNT_ID = "account-id";
 const USER_ID = "user-id";
@@ -100,10 +101,12 @@ export async function seedTransactions() {
 
     return {
       success: true,
-      message: `Created ${transactions.length} transactions`,
+      data: {
+        message: `Created ${transactions.length} transactions`,
+      },
     };
   } catch (error) {
     console.error("Error seeding transactions:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: getErrorMessage(error) };
   }
 }

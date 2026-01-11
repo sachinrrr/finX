@@ -1,18 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
 import { WordRotate } from "@/components/ui/word-rotate";
 
+const HERO_WORDS = [
+  "track",
+  "manage",
+  "plan",
+  "optimize",
+  "analyze",
+  "monitor",
+  "improve",
+];
 
 const HeroSection = () => {
-  const words = useMemo(
-    () => ["track", "manage", "plan", "optimize", "analyze", "monitor", "improve"],
-    []
-  );
-return (
+  const words = HERO_WORDS;
+
+  return (
     <div className="relative pt-24 sm:pt-28 md:pt-32 pb-20 sm:pb-24 px-4 overflow-hidden bg-background">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.10),transparent_55%),radial-gradient(circle_at_80%_60%,rgba(255,255,255,0.06),transparent_50%)]"></div>
       

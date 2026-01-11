@@ -3,14 +3,24 @@ import { defaultCategories } from "@/data/categories";
 import { AddTransactionForm } from "../_components/transaction-form";
 import { getTransaction } from "@/actions/transaction";
 
+export const dynamic = "force-dynamic";
+
 export default async function AddTransactionPage({ searchParams }) {
-  const accounts = await getUserAccounts();
+  const accountsResult = await getUserAccounts();
+  if (!accountsResult?.success) {
+    throw new Error(accountsResult?.error || "Failed to load accounts");
+  }
+
+  const accounts = accountsResult.data;
   const editId = searchParams?.edit;
 
   let initialData = null;
   if (editId) {
-    const transaction = await getTransaction(editId);
-    initialData = transaction;
+    const transactionResult = await getTransaction(editId);
+    if (!transactionResult?.success) {
+      throw new Error(transactionResult?.error || "Failed to load transaction");
+    }
+    initialData = transactionResult.data;
   }
 
   return (

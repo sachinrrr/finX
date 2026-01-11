@@ -27,8 +27,8 @@ export function ReceiptScanner({ onScanComplete }) {
 
   useEffect(() => {
     if (!scanReceiptLoading && scannedData !== undefined) {
-      if (scannedData) {
-        onScanComplete(scannedData);
+      if (scannedData?.success && scannedData.data) {
+        onScanComplete(scannedData.data);
         toast.success("Receipt scanned successfully");
       } else {
         toast.error("Could not extract data from this receipt");
