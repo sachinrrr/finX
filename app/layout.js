@@ -10,6 +10,11 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "FinX",
   description: "Master your Finances",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
