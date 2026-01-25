@@ -5,6 +5,7 @@ import {
     CreditCard,
     Globe,
     Zap,
+    MessageCircle,
   } from "lucide-react";
   
   // Stats Data
@@ -29,6 +30,12 @@ import {
   
   // Features Data
   export const featuresData = [
+    {
+      icon: <MessageCircle className="h-8 w-8 text-primary" />,
+      title: "Chat with Your Finances",
+      description:
+        "Ask questions about your spending, budgets, and transactions using AI-powered conversational interface",
+    },
     {
       icon: <BarChart3 className="h-8 w-8 text-slate-700" />,
       title: "Advanced Analytics",

@@ -8,8 +8,9 @@ const WordRotate = React.forwardRef(
   (
     {
       words,
-      intervalMs = 2000,
-      rollMs = 520,
+      intervalMs = 2500,
+      rollMs = 800,
+      spinCount = 6, // Number of words to spin through before landing
       className,
       wordClassName,
       align = "right",
@@ -17,23 +18,36 @@ const WordRotate = React.forwardRef(
     },
     ref
   ) => {
-    const [index, setIndex] = React.useState(0);
-    const [isRolling, setIsRolling] = React.useState(false);
-    const [disableTransition, setDisableTransition] = React.useState(false);
+    const [currentIndex, setCurrentIndex] = React.useState(0);
+    const [isSpinning, setIsSpinning] = React.useState(false);
+    const [spinOffset, setSpinOffset] = React.useState(0);
+    const [displayWords, setDisplayWords] = React.useState([]);
 
-    const DESCENDER_PADDING = 8; // Extra space for descenders like g, y, p, q
+    const DESCENDER_PADDING = 8;
 
     const measureRefs = React.useRef([]);
     const [maxWidth, setMaxWidth] = React.useState(0);
     const [maxHeight, setMaxHeight] = React.useState(0);
 
-    const timeoutRef = React.useRef(undefined);
     const intervalRef = React.useRef(undefined);
 
-    const nextIndex = words?.length ? (index + 1) % words.length : 0;
-
-    const currentWord = words?.[index] ?? "";
-    const nextWord = words?.[nextIndex] ?? "";
+    // Build the list of words to display during spin animation
+    React.useEffect(() => {
+      if (!words?.length) return;
+      
+      const nextIndex = (currentIndex + 1) % words.length;
+      const spinWords = [words[currentIndex]];
+      
+      // Add intermediate words for the slot machine effect
+      for (let i = 0; i < spinCount; i++) {
+        const idx = (currentIndex + 1 + i) % words.length;
+        spinWords.push(words[idx]);
+      }
+      // Ensure the target word is at the end
+      spinWords.push(words[nextIndex]);
+      
+      setDisplayWords(spinWords);
+    }, [words, currentIndex, spinCount]);
 
     React.useLayoutEffect(() => {
       const compute = () => {
@@ -74,20 +88,20 @@ const WordRotate = React.forwardRef(
       if (!words?.length || words.length < 2) return;
 
       intervalRef.current = window.setInterval(() => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
+        // Start the spin
+        setIsSpinning(true);
+        setSpinOffset(0);
+        
+        // Animate to final position
+        requestAnimationFrame(() => {
+          setSpinOffset(spinCount + 1); // Move to show the target word
+        });
 
-        setIsRolling(true);
-
-        timeoutRef.current = window.setTimeout(() => {
-          setDisableTransition(true);
-          setIndex((prev) => (prev + 1) % words.length);
-          setIsRolling(false);
-
-          window.requestAnimationFrame(() => {
-            setDisableTransition(false);
-          });
+        // After animation completes, update the actual index and reset
+        setTimeout(() => {
+          setCurrentIndex((prev) => (prev + 1) % words.length);
+          setIsSpinning(false);
+          setSpinOffset(0);
         }, rollMs);
       }, intervalMs);
 
@@ -95,11 +109,8 @@ const WordRotate = React.forwardRef(
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
         }
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
       };
-    }, [intervalMs, rollMs, words]);
+    }, [intervalMs, rollMs, words, spinCount]);
 
     const getAlignmentClass = () => {
       if (align === "left") return "text-left";
@@ -112,6 +123,8 @@ const WordRotate = React.forwardRef(
       if (align === "center") return "justify-center";
       return "justify-end";
     };
+
+    const currentWord = words?.[currentIndex] ?? "";
 
     if (!maxWidth || !maxHeight) {
       return (
@@ -156,37 +169,50 @@ const WordRotate = React.forwardRef(
         {...props}
       >
         <span
-          className={cn(
-            "relative block will-change-transform",
-            disableTransition
-              ? "transition-none"
-              : "transition-transform motion-reduce:transition-none"
-          )}
+          className="relative block will-change-transform"
           style={{
-            transform: isRolling ? "translateY(-100%)" : "translateY(0)",
-            transitionDuration: disableTransition ? undefined : `${rollMs}ms`,
-            transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+            transform: `translateY(-${spinOffset * maxHeight}px)`,
+            transition: isSpinning 
+              ? `transform ${rollMs}ms cubic-bezier(0.33, 1, 0.68, 1)` 
+              : 'none',
           }}
           aria-live="polite"
         >
-          <span
-            className={cn(
-              "block whitespace-nowrap",
-              getAlignmentClass(),
-              wordClassName
-            )}
-          >
-            {currentWord}
-          </span>
-          <span
-            className={cn(
-              "block whitespace-nowrap",
-              getAlignmentClass(),
-              wordClassName
-            )}
-          >
-            {nextWord}
-          </span>
+          {isSpinning ? (
+            // During spin, show all the intermediate words
+            displayWords.map((word, i) => (
+              <span
+                key={`spin-${i}`}
+                className={cn(
+                  "block whitespace-nowrap",
+                  getAlignmentClass(),
+                  wordClassName
+                )}
+                style={{
+                  height: `${maxHeight}px`,
+                  lineHeight: `${maxHeight}px`,
+                  opacity: i === 0 || i === displayWords.length - 1 ? 1 : 0.4,
+                }}
+              >
+                {word}
+              </span>
+            ))
+          ) : (
+            // When not spinning, just show the current word
+            <span
+              className={cn(
+                "block whitespace-nowrap",
+                getAlignmentClass(),
+                wordClassName
+              )}
+              style={{
+                height: `${maxHeight}px`,
+                lineHeight: `${maxHeight}px`,
+              }}
+            >
+              {currentWord}
+            </span>
+          )}
         </span>
 
         <span className="absolute -z-10 opacity-0 pointer-events-none select-none" aria-hidden>

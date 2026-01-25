@@ -12,8 +12,9 @@ import {
   ChevronRight,
   RefreshCw,
   Clock,
+  Calendar,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { toast } from "sonner";
 
 import {
@@ -49,7 +50,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { categoryColors } from "@/data/categories";
+import { categoryColors, defaultCategories } from "@/data/categories";
 import { bulkDeleteTransactions } from "@/actions/accounts";
 import useFetch from "@/hooks/use-fetch";
 import { BarLoader } from "react-spinners";
@@ -74,12 +75,39 @@ export function TransactionTable({ transactions, currency = "USD" }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [recurringFilter, setRecurringFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Date range filter state - default to current month
+  const [dateFrom, setDateFrom] = useState(
+    format(startOfMonth(new Date()), "yyyy-MM-dd")
+  );
+  const [dateTo, setDateTo] = useState(
+    format(endOfMonth(new Date()), "yyyy-MM-dd")
+  );
   const router = useRouter();
 
   // Memoized filtered and sorted transactions
   const filteredAndSortedTransactions = useMemo(() => {
     let result = [...transactions];
+
+    // Apply date range filter
+    if (dateFrom || dateTo) {
+      result = result.filter((transaction) => {
+        const transactionDate = new Date(transaction.date);
+        const fromDate = dateFrom ? new Date(dateFrom) : null;
+        const toDate = dateTo ? new Date(dateTo) : null;
+
+        if (fromDate && transactionDate < fromDate) return false;
+        if (toDate) {
+          const endOfDay = new Date(toDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          if (transactionDate > endOfDay) return false;
+        }
+
+        return true;
+      });
+    }
 
     // Apply search filter
     if (searchTerm) {
@@ -100,6 +128,11 @@ export function TransactionTable({ transactions, currency = "USD" }) {
         if (recurringFilter === "recurring") return transaction.isRecurring;
         return !transaction.isRecurring;
       });
+    }
+
+    // Apply category filter
+    if (categoryFilter) {
+      result = result.filter((transaction) => transaction.category === categoryFilter);
     }
 
     // Apply sorting
@@ -124,7 +157,7 @@ export function TransactionTable({ transactions, currency = "USD" }) {
     });
 
     return result;
-  }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
+  }, [transactions, searchTerm, typeFilter, recurringFilter, categoryFilter, sortConfig, dateFrom, dateTo]);
 
   // Pagination calculations
   const totalPages = Math.ceil(
@@ -189,6 +222,9 @@ export function TransactionTable({ transactions, currency = "USD" }) {
     setSearchTerm("");
     setTypeFilter("");
     setRecurringFilter("");
+    setCategoryFilter("");
+    setDateFrom(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+    setDateTo(format(endOfMonth(new Date()), "yyyy-MM-dd"));
     setCurrentPage(1);
   };
 
@@ -202,6 +238,45 @@ export function TransactionTable({ transactions, currency = "USD" }) {
       {deleteLoading && (
         <BarLoader className="mt-4" width={"100%"} color="#ec4899" />
       )}
+
+      {/* Date Range Filter */}
+      <div className="bg-card border rounded-lg p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Calendar className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Date Range Filter</h3>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1 min-w-0">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+              From Date
+            </label>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full h-9"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+              To Date
+            </label>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full h-9"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -249,6 +324,31 @@ export function TransactionTable({ transactions, currency = "USD" }) {
             </SelectContent>
           </Select>
 
+          <Select
+            value={categoryFilter}
+            onValueChange={(value) => {
+              setCategoryFilter(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              {defaultCategories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: category.color }}
+                    />
+                    {category.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {/* Bulk Actions */}
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2">
@@ -263,7 +363,9 @@ export function TransactionTable({ transactions, currency = "USD" }) {
             </div>
           )}
 
-          {(searchTerm || typeFilter || recurringFilter) && (
+          {(searchTerm || typeFilter || recurringFilter || categoryFilter ||
+            dateFrom !== format(startOfMonth(new Date()), "yyyy-MM-dd") ||
+            dateTo !== format(endOfMonth(new Date()), "yyyy-MM-dd")) && (
             <Button
               variant="outline"
               size="icon"
@@ -357,7 +459,12 @@ export function TransactionTable({ transactions, currency = "USD" }) {
                     />
                   </TableCell>
                   <TableCell>
-                    {format(new Date(transaction.date), "PP")}
+                    <div className="flex flex-col">
+                      <span>{format(new Date(transaction.date), "PP")}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(transaction.date), "p")}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>{transaction.description}</TableCell>
                   <TableCell className="capitalize">

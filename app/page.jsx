@@ -1,8 +1,56 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import HeroSection from "@/components/hero";
 import Footer from "@/components/footer";
 import { featuresData, howItWorksData } from "@/data/landing";
 
 export default function Home() {
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    let scrollInterval;
+    let isHovering = false;
+
+    const startAutoScroll = () => {
+      scrollInterval = setInterval(() => {
+        if (!isHovering && scrollContainer) {
+          const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+          const currentScroll = scrollContainer.scrollLeft;
+
+          if (currentScroll >= maxScroll) {
+            // Smoothly scroll back to start
+            scrollContainer.scrollTo({ left: 0, behavior: "smooth" });
+          } else {
+            // Scroll to next card
+            scrollContainer.scrollBy({ left: 400, behavior: "smooth" });
+          }
+        }
+      }, 3000); // Auto-scroll every 3 seconds
+    };
+
+    const handleMouseEnter = () => {
+      isHovering = true;
+    };
+
+    const handleMouseLeave = () => {
+      isHovering = false;
+    };
+
+    scrollContainer.addEventListener("mouseenter", handleMouseEnter);
+    scrollContainer.addEventListener("mouseleave", handleMouseLeave);
+
+    startAutoScroll();
+
+    return () => {
+      clearInterval(scrollInterval);
+      scrollContainer?.removeEventListener("mouseenter", handleMouseEnter);
+      scrollContainer?.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, []);
   return (
     <div className="bg-background">
       {/* Hero Section */}
@@ -13,9 +61,12 @@ export default function Home() {
       {/* Subtle glow effects */}
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-background">
-        {/* Background effects */}
-        <div className="container mx-auto px-4">
+      <section id="features" className="py-24 bg-background relative overflow-hidden">
+        {/* Background gradient effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4 text-foreground">
               Powerful Features
@@ -25,21 +76,39 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuresData.map((feature, index) => (
-              <div
-                key={index}
-                className="group relative p-8 rounded-lg bg-card border border-border hover:bg-muted transition-colors"
-              >
-                {/* Icon container */}
-                <div className="w-14 h-14 rounded-lg flex items-center justify-center mb-6 border border-border bg-card">
-                  {feature.icon}
-                </div>
-                
-                <h3 className="text-xl font-semibold tracking-tight text-foreground mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+          {/* Horizontal Scrolling Features */}
+          <div className="relative">
+            {/* Scroll container */}
+            <div ref={scrollContainerRef} className="overflow-x-auto pb-8 scrollbar-hide scroll-smooth">
+              <div className="flex gap-6 px-4 md:px-0 min-w-max">
+                {featuresData.map((feature, index) => (
+                  <div
+                    key={index}
+                    className="group relative w-[340px] md:w-[380px] p-10 rounded-2xl bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-sm border-2 border-border/50 hover:border-primary/30 transition-all duration-300 overflow-hidden hover:shadow-xl hover:shadow-primary/10 flex-shrink-0"
+                  >
+                    {/* Animated gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+                    
+                    {/* Glow effect on hover */}
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />
+                    
+                    <div className="relative z-10">
+                      {/* Icon container with enhanced styling */}
+                      <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg shadow-primary/10 group-hover:scale-110 group-hover:shadow-xl group-hover:shadow-primary/20 transition-all duration-300">
+                        {feature.icon}
+                      </div>
+                      
+                      <h3 className="text-xl font-semibold tracking-tight text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
+                        {feature.title}
+                      </h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
