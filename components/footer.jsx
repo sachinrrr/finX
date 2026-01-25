@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Github, Twitter, Linkedin, Mail } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -15,36 +14,6 @@ const Footer = () => {
             <p className="text-muted-foreground text-sm leading-relaxed max-w-md">
               A secure, minimal finance workspace built for clear decisions.
             </p>
-            <div className="flex gap-4">
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
-                aria-label="GitHub"
-              >
-                <Github className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors duration-200 group"
-                aria-label="Email"
-              >
-                <Mail className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </a>
-            </div>
           </div>
 
           <p className="text-muted-foreground text-sm md:text-right">
