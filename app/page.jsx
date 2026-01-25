@@ -8,30 +8,33 @@ import { featuresData, howItWorksData } from "@/data/landing";
 export default function Home() {
   const scrollContainerRef = useRef(null);
 
-  // Auto-scroll features section
+  // Smooth auto-scroll for features section
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
-    let scrollInterval;
+    let animationId;
     let isHovering = false;
+    let currentPosition = 0;
+    const scrollSpeed = 0.15; // Slow belt-like scrolling speed
+    const cardWidth = 400; // Approximate card width + gap
 
-    // Start auto-scrolling through features
-    const startAutoScroll = () => {
-      scrollInterval = setInterval(() => {
-        if (!isHovering && scrollContainer) {
-          const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
-          const currentScroll = scrollContainer.scrollLeft;
-
-          if (currentScroll >= maxScroll) {
-            // Loop back to start
-            scrollContainer.scrollTo({ left: 0, behavior: "smooth" });
-          } else {
-            // Scroll to next feature card
-            scrollContainer.scrollBy({ left: 400, behavior: "smooth" });
-          }
+    // Smooth continuous scrolling animation
+    const smoothScroll = () => {
+      if (!isHovering && scrollContainer) {
+        const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        
+        currentPosition += scrollSpeed;
+        
+        // Loop back to start when reaching the end
+        if (currentPosition >= maxScroll) {
+          currentPosition = 0;
         }
-      }, 3000);
+        
+        scrollContainer.scrollLeft = currentPosition;
+      }
+      
+      animationId = requestAnimationFrame(smoothScroll);
     };
 
     const handleMouseEnter = () => {
@@ -45,10 +48,11 @@ export default function Home() {
     scrollContainer.addEventListener("mouseenter", handleMouseEnter);
     scrollContainer.addEventListener("mouseleave", handleMouseLeave);
 
-    startAutoScroll();
+    // Start the smooth scroll animation
+    animationId = requestAnimationFrame(smoothScroll);
 
     return () => {
-      clearInterval(scrollInterval);
+      cancelAnimationFrame(animationId);
       scrollContainer?.removeEventListener("mouseenter", handleMouseEnter);
       scrollContainer?.removeEventListener("mouseleave", handleMouseLeave);
     };
