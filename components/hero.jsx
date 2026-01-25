@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// Words that rotate in the hero headline
 const HERO_WORDS = [
   "track",
   "manage",

@@ -1,3 +1,4 @@
+// Default transaction categories with colors and icons
 export const defaultCategories = [
   // Income Categories
   {

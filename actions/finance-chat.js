@@ -8,10 +8,12 @@ import {
 } from "@/lib/gemini";
 import { getErrorMessage } from "@/lib/errors";
 
+// Cache for Gemini models (10 minute TTL)
 let cachedGeminiModels;
 let cachedGeminiModelsAtMs;
 let cachedGeminiModelsApiVersion;
 
+// Fetch available Gemini models from Google's API with caching
 async function listGeminiModels(apiKey) {
   const cacheTtlMs = 1000 * 60 * 10;
   if (
@@ -52,7 +54,9 @@ async function listGeminiModels(apiKey) {
   throw lastError || new Error("Unable to list Gemini models");
 }
 
+// Resolve best available Gemini model (prioritizes Flash > Pro > Others)
 async function resolveGeminiModel(apiKey) {
+  // Allow manual override via environment variable
   if (process.env.GEMINI_MODEL) {
     return {
       apiVersion: "v1beta",
@@ -68,6 +72,7 @@ async function resolveGeminiModel(apiKey) {
 
   const ids = supported.map((name) => name.replace(/^models\//, ""));
 
+  // Prioritize models: Flash > Pro > Others
   const prefer = (id) => {
     const s = id.toLowerCase();
     if (s.includes("flash")) return 0;
@@ -83,6 +88,7 @@ async function resolveGeminiModel(apiKey) {
   return { apiVersion, model: sorted[0] };
 }
 
+// Chat with AI financial assistant using user's actual financial data
 export async function chatWithFinance(userMessage) {
   try {
     const { userId } = await auth();
@@ -91,6 +97,7 @@ export async function chatWithFinance(userMessage) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return { success: false, error: "GEMINI_API_KEY is not set" };
 
+    // Fetch user with accounts and budgets
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
       include: {
@@ -101,20 +108,17 @@ export async function chatWithFinance(userMessage) {
 
     if (!user) return { success: false, error: "User not found" };
 
-    // Get current date info for context
+    // Calculate date ranges for financial analysis
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    // Get start and end of current month
     const startOfMonth = new Date(currentYear, currentMonth, 1);
     const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
 
-    // Get start and end of last month
     const startOfLastMonth = new Date(currentYear, currentMonth - 1, 1);
     const endOfLastMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59);
 
-    // Get all transactions for context (last 3 months for comprehensive data)
     const threeMonthsAgo = new Date(currentYear, currentMonth - 3, 1);
     
     const transactions = await db.transaction.findMany({
@@ -137,7 +141,7 @@ export async function chatWithFinance(userMessage) {
       },
     });
 
-    // Calculate summary statistics
+    // Filter transactions by month
     const currentMonthTransactions = transactions.filter(
       (t) => new Date(t.date) >= startOfMonth && new Date(t.date) <= endOfMonth
     );
@@ -161,7 +165,7 @@ export async function chatWithFinance(userMessage) {
       .filter((t) => t.type === "INCOME")
       .reduce((sum, t) => sum + Number(t.amount), 0);
 
-    // Group expenses by category for current and last month
+    // Group expenses by category
     const categoryExpensesCurrentMonth = {};
     const categoryExpensesLastMonth = {};
 
@@ -179,7 +183,7 @@ export async function chatWithFinance(userMessage) {
           (categoryExpensesLastMonth[t.category] || 0) + Number(t.amount);
       });
 
-    // Budget information
+    // Calculate budget status
     const budget = user.budgets;
     const budgetAmount = budget ? Number(budget.amount) : null;
     const budgetStatus = budgetAmount
@@ -192,7 +196,7 @@ export async function chatWithFinance(userMessage) {
         }
       : null;
 
-    // Account balances
+    // Summarize account balances
     const accountSummary = user.accounts.map((acc) => ({
       name: acc.name,
       type: acc.type,
@@ -202,7 +206,7 @@ export async function chatWithFinance(userMessage) {
 
     const totalBalance = accountSummary.reduce((sum, acc) => sum + acc.balance, 0);
 
-    // Recent transactions (last 10)
+    // Format recent transactions for AI context
     const recentTransactions = transactions.slice(0, 10).map((t) => ({
       date: t.date.toISOString().split("T")[0],
       type: t.type,
@@ -212,7 +216,7 @@ export async function chatWithFinance(userMessage) {
       account: t.account?.name,
     }));
 
-    // Build context for Gemini
+    // Build comprehensive financial context string
     const financialContext = `
 ## User Financial Data (as of ${now.toLocaleDateString()})
 
@@ -264,6 +268,7 @@ Guidelines:
 - Keep responses brief but informative
 `;
 
+    // Resolve best available Gemini model
     const resolved = await resolveGeminiModel(apiKey);
 
     const parts = [
@@ -271,6 +276,7 @@ Guidelines:
       { text: `User question: ${userMessage}` },
     ];
 
+    // Generate AI response with fallback to alternate API version
     let responseJson;
     try {
       responseJson = await generateGeminiContent({
@@ -280,7 +286,7 @@ Guidelines:
         parts,
       });
     } catch (e) {
-      // Try alternate API version
+      // Fallback to alternate API version if first attempt fails
       const altVersion = resolved.apiVersion === "v1" ? "v1beta" : "v1";
       responseJson = await generateGeminiContent({
         apiKey,

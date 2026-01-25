@@ -7,6 +7,7 @@ import FinanceChat from "@/components/finance-chat";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Application metadata
 export const metadata = {
   title: "FinX",
   description: "Master your Finances",

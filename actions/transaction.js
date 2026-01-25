@@ -12,11 +12,14 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import { serializeData } from "@/lib/serialize";
 
+// Cache for Gemini models (10 minute TTL)
 let cachedGeminiModels;
 let cachedGeminiModelsAtMs;
 let cachedGeminiModelsApiVersion;
 
+// Fetch available Gemini models from Google's API with caching
 async function listGeminiModels(apiKey) {
+  // 10 minute cache TTL
   const cacheTtlMs = 1000 * 60 * 10;
   if (
     cachedGeminiModels &&
@@ -24,39 +27,49 @@ async function listGeminiModels(apiKey) {
     cachedGeminiModelsApiVersion &&
     Date.now() - cachedGeminiModelsAtMs < cacheTtlMs
   ) {
+    // Return cached models if available and not expired
     return { apiVersion: cachedGeminiModelsApiVersion, models: cachedGeminiModels };
   }
 
+  // Try multiple API versions
   const versions = ["v1", "v1beta"];
   let lastError;
 
   for (const version of versions) {
     try {
+      // Fetch models from Google's API
       const res = await fetch(
         `https://generativelanguage.googleapis.com/${version}/models?key=${apiKey}`,
         { method: "GET" }
       );
 
       if (!res.ok) {
+        // Handle non-OK response
         lastError = new Error(`ListModels failed (${version}): ${res.status} ${res.statusText}`);
         continue;
       }
 
+      // Parse JSON response
       const json = await res.json();
       const models = Array.isArray(json?.models) ? json.models : [];
+      // Cache models for future use
       cachedGeminiModels = models;
       cachedGeminiModelsAtMs = Date.now();
       cachedGeminiModelsApiVersion = version;
       return { apiVersion: version, models };
     } catch (e) {
+      // Handle any errors
       lastError = e;
     }
   }
 
+  // If all versions fail, throw an error
   throw lastError || new Error("Unable to list Gemini models");
 }
 
+// Resolve best available Gemini model (with optional vision preference)
 async function resolveGeminiModel(apiKey, { preferVision } = {}) {
+  // Allow manual override via environment variable
   if (process.env.GEMINI_MODEL) {
     return {
       apiVersion: "v1",
@@ -64,7 +77,9 @@ async function resolveGeminiModel(apiKey, { preferVision } = {}) {
     };
   }
 
+  // Fetch available models
   const { apiVersion, models } = await listGeminiModels(apiKey);
+  // Filter models that support generateContent
   const supported = models
     .filter((m) => (m?.supportedGenerationMethods || []).includes("generateContent"))
     .map((m) => String(m?.name || ""))
@@ -72,6 +87,7 @@ async function resolveGeminiModel(apiKey, { preferVision } = {}) {
 
   const ids = supported.map((name) => name.replace(/^models\//, ""));
 
+  // Prioritize models: Vision (if requested) > Flash > Pro > Others
   const prefer = (id) => {
     const s = id.toLowerCase();
     if (preferVision && (s.includes("vision") || s.includes("pro-vision"))) return 0;
@@ -82,18 +98,21 @@ async function resolveGeminiModel(apiKey, { preferVision } = {}) {
 
   const sorted = [...ids].sort((a, b) => prefer(a) - prefer(b));
   if (sorted.length === 0) {
+    // If no models are available, throw an error
     throw new Error("No Gemini models available for generateContent for this API key");
   }
 
   return { apiVersion, model: sorted[0] };
 }
 
-// Create Transaction
+// Create a new transaction and update account balance
 export async function createTransaction(data) {
   try {
+    // Authenticate user
     const { userId } = await auth();
     if (!userId) return { success: false, error: "Unauthorized" };
 
+    // Find user by Clerk ID
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
@@ -145,15 +164,18 @@ export async function createTransaction(data) {
 
 export async function getTransaction(id) {
   try {
+    // Authenticate user and retrieve Clerk ID
     const { userId } = await auth();
     if (!userId) return { success: false, error: "Unauthorized" };
 
+    // Find user by Clerk ID
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
     if (!user) return { success: false, error: "User not found" };
 
+    // Retrieve transaction by ID and user ID
     const transaction = await db.transaction.findUnique({
       where: {
         id,
@@ -163,17 +185,22 @@ export async function getTransaction(id) {
 
     if (!transaction) return { success: false, error: "Transaction not found" };
 
+    // Return serialized transaction data
     return { success: true, data: serializeData(transaction) };
   } catch (error) {
+    // Handle any errors and return error message
     return { success: false, error: getErrorMessage(error) };
   }
 }
 
+// Update a transaction and recalculate account balance
 export async function updateTransaction(id, data) {
   try {
+    // Authenticate user and retrieve Clerk ID
     const { userId } = await auth();
     if (!userId) return { success: false, error: "Unauthorized" };
 
+    // Find user by Clerk ID
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
@@ -193,7 +220,7 @@ export async function updateTransaction(id, data) {
 
     if (!originalTransaction) return { success: false, error: "Transaction not found" };
 
-    // Calculate balance changes
+    // Calculate net balance change (new - old)
     const oldBalanceChange =
       originalTransaction.type === "EXPENSE"
         ? -originalTransaction.amount.toNumber()
@@ -204,7 +231,7 @@ export async function updateTransaction(id, data) {
 
     const netBalanceChange = newBalanceChange - oldBalanceChange;
 
-    // Update transaction and account balance in a transaction
+    // Update transaction and account balance atomically
     const transaction = await db.$transaction(async (tx) => {
       const updated = await tx.transaction.update({
         where: {
@@ -233,27 +260,33 @@ export async function updateTransaction(id, data) {
       return updated;
     });
 
+    // Revalidate dashboard and account pages
     revalidatePath("/dashboard");
     revalidatePath(`/account/${data.accountId}`);
 
+    // Return serialized transaction data
     return { success: true, data: serializeData(transaction) };
   } catch (error) {
+    // Handle any errors and return error message
     return { success: false, error: getErrorMessage(error) };
   }
 }
 
-// Get User Transactions
+// Fetch all transactions for authenticated user with optional filters
 export async function getUserTransactions(query = {}) {
   try {
+    // Authenticate user and retrieve Clerk ID
     const { userId } = await auth();
     if (!userId) return { success: false, error: "Unauthorized" };
 
+    // Find user by Clerk ID
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
     if (!user) return { success: false, error: "User not found" };
 
+    // Retrieve transactions for user with optional filters
     const transactions = await db.transaction.findMany({
       where: {
         userId: user.id,
@@ -267,27 +300,31 @@ export async function getUserTransactions(query = {}) {
       },
     });
 
+    // Return serialized transaction data
     return { success: true, data: serializeData(transactions) };
   } catch (error) {
+    // Handle any errors and return error message
     return { success: false, error: getErrorMessage(error) };
   }
 }
 
-// Scan Receipt
+// Scan receipt image using Gemini Vision API and extract transaction details
 export async function scanReceipt(file) {
   try {
+    // Check if GEMINI_API_KEY is set
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) return { success: false, error: "GEMINI_API_KEY is not set" };
 
+    // Check if file is valid
     if (!file || typeof file.arrayBuffer !== "function") {
       return { success: false, error: "Invalid receipt file" };
     }
 
-    // Convert File to ArrayBuffer
+    // Convert file to base64 for Gemini API
     const arrayBuffer = await file.arrayBuffer();
-    // Convert ArrayBuffer to Base64
     const base64String = Buffer.from(arrayBuffer).toString("base64");
 
+    // Define prompt for Gemini API
     const prompt = `
       Analyze this receipt image and extract the following information in JSON format:
       - Total amount (just the number)

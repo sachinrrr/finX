@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Button } from "./button";
 import {  LayoutDashboard, Plus } from "lucide-react";
 
-
 const Header = () => {
   return (
     <div className="fixed top-0 w-full bg-background/80 backdrop-blur z-50 border-b border-border">

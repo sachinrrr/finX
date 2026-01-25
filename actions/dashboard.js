@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getErrorMessage } from "@/lib/errors";
 import { serializeData } from "@/lib/serialize";
 
+// Fetch all accounts for authenticated user
 export async function getUserAccounts() {
   try {
     const { userId } = await auth();
@@ -19,6 +20,7 @@ export async function getUserAccounts() {
       throw new Error("User not found");
     }
 
+    // Fetch accounts with transaction count
     const accounts = await db.account.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
@@ -38,6 +40,7 @@ export async function getUserAccounts() {
   }
 }
 
+// Create a new account for authenticated user
 export async function createAccount(data) {
   try {
     const { userId } = await auth();
@@ -51,7 +54,7 @@ export async function createAccount(data) {
       throw new Error("User not found");
     }
 
-    // Convert balance to float before saving
+    // Validate and convert balance to float
     const balanceFloat = parseFloat(data.balance);
     if (isNaN(balanceFloat)) {
       return { success: false, error: "Invalid balance amount" };
@@ -62,12 +65,11 @@ export async function createAccount(data) {
       where: { userId: user.id },
     });
 
-    // If it's the first account, make it default regardless of user input
-    // If not, use the user's preference
+    // First account is always default, otherwise use user's preference
     const shouldBeDefault =
       existingAccounts.length === 0 ? true : data.isDefault;
 
-    // If this account should be default, unset other default accounts
+    // Unset other default accounts if this one should be default
     if (shouldBeDefault) {
       await db.account.updateMany({
         where: { userId: user.id, isDefault: true },
@@ -75,13 +77,13 @@ export async function createAccount(data) {
       });
     }
 
-    // Create new account
+    // Create the new account
     const account = await db.account.create({
       data: {
         ...data,
         balance: balanceFloat,
         userId: user.id,
-        isDefault: shouldBeDefault, // Override the isDefault based on our logic
+        isDefault: shouldBeDefault,
       },
     });
 
@@ -92,6 +94,7 @@ export async function createAccount(data) {
   }
 }
 
+// Fetch all dashboard data (transactions) for authenticated user
 export async function getDashboardData() {
   try {
     const { userId } = await auth();
@@ -105,7 +108,7 @@ export async function getDashboardData() {
       throw new Error("User not found");
     }
 
-    // Get all user transactions
+    // Fetch all user transactions sorted by date
     const transactions = await db.transaction.findMany({
       where: { userId: user.id },
       orderBy: { date: "desc" },

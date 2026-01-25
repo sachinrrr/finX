@@ -8,6 +8,7 @@ import { featuresData, howItWorksData } from "@/data/landing";
 export default function Home() {
   const scrollContainerRef = useRef(null);
 
+  // Auto-scroll features section
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
@@ -15,6 +16,7 @@ export default function Home() {
     let scrollInterval;
     let isHovering = false;
 
+    // Start auto-scrolling through features
     const startAutoScroll = () => {
       scrollInterval = setInterval(() => {
         if (!isHovering && scrollContainer) {
@@ -22,14 +24,14 @@ export default function Home() {
           const currentScroll = scrollContainer.scrollLeft;
 
           if (currentScroll >= maxScroll) {
-            // Smoothly scroll back to start
+            // Loop back to start
             scrollContainer.scrollTo({ left: 0, behavior: "smooth" });
           } else {
-            // Scroll to next card
+            // Scroll to next feature card
             scrollContainer.scrollBy({ left: 400, behavior: "smooth" });
           }
         }
-      }, 3000); // Auto-scroll every 3 seconds
+      }, 3000);
     };
 
     const handleMouseEnter = () => {

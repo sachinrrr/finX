@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+// Utility to join class names
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
 const WordRotate = React.forwardRef(
