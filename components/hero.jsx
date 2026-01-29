@@ -89,21 +89,18 @@ const HeroSection = () => {
 
       {/* Demo Video Dialog */}
       <Dialog open={showDemoVideo} onOpenChange={setShowDemoVideo}>
-        <DialogContent className="max-w-4xl w-[95vw] p-0">
-          <DialogHeader className="p-6 pb-4">
+        <DialogContent className="max-w-4xl w-[95vw] p-6">
+          <DialogHeader className="pb-4">
             <DialogTitle className="text-2xl font-semibold">FinX Demo</DialogTitle>
           </DialogHeader>
-          <div className="aspect-video w-full bg-muted rounded-b-lg overflow-hidden">
-            <iframe
-              width="100%"
-              height="100%"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-              title="FinX Demo Video"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-            ></iframe>
+          <div className="aspect-video w-full bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+            <div className="text-center p-8">
+              <Play className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-lg font-medium text-foreground mb-2">Demo Video Coming Soon</p>
+              <p className="text-sm text-muted-foreground">
+                A comprehensive walkthrough of FinX features will be available here.
+              </p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
