@@ -4,9 +4,11 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { getErrorMessage } from "@/lib/errors";
+import { unstable_noStore as noStore } from "next/cache";
 
 // Fetch current budget and month's expenses for an account
 export async function getCurrentBudget(accountId) {
+  noStore(); // Disable caching for this function
   try {
     // Get authenticated user ID
     const { userId } = await auth();

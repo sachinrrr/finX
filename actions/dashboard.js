@@ -5,9 +5,11 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { getErrorMessage } from "@/lib/errors";
 import { serializeData } from "@/lib/serialize";
+import { unstable_noStore as noStore } from "next/cache";
 
 // Fetch all accounts for authenticated user
 export async function getUserAccounts() {
+  noStore(); // Disable caching
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
@@ -96,6 +98,7 @@ export async function createAccount(data) {
 
 // Fetch all dashboard data (transactions) for authenticated user
 export async function getDashboardData() {
+  noStore(); // Disable caching
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
