@@ -28,18 +28,24 @@ export async function getCurrentBudget(accountId) {
       },
     });
 
-    // Calculate current month date range
-    const currentDate = new Date();
-    const startOfMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      1
-    );
-    const endOfMonth = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      0
-    );
+    // Calculate current month date range using UTC to avoid timezone issues
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+    
+    // Start of current month (UTC)
+    const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+    // End of current month (UTC) - last day at 23:59:59.999
+    const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+
+    console.log("Budget calculation:", {
+      serverTime: now.toISOString(),
+      year,
+      month: month + 1,
+      startOfMonth: startOfMonth.toISOString(),
+      endOfMonth: endOfMonth.toISOString(),
+      accountId,
+    });
 
     // Aggregate current month's expenses
     const expenses = await db.transaction.aggregate({
@@ -57,14 +63,21 @@ export async function getCurrentBudget(accountId) {
       },
     });
 
+    const currentExpenses = expenses._sum.amount
+      ? expenses._sum.amount.toNumber()
+      : 0;
+
+    console.log("Budget result:", {
+      budgetAmount: budget?.amount?.toNumber(),
+      currentExpenses,
+    });
+
     // Return budget and expenses data
     return {
       success: true,
       data: {
         budget: budget ? { ...budget, amount: budget.amount.toNumber() } : null,
-        currentExpenses: expenses._sum.amount
-          ? expenses._sum.amount.toNumber()
-          : 0,
+        currentExpenses,
       },
     };
   } catch (error) {
