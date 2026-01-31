@@ -94,8 +94,9 @@ export function TransactionTable({ transactions, currency = "USD" }) {
     // Apply date range filter
     if (dateFrom || dateTo) {
       result = result.filter((transaction) => {
-        // Extract just the date part (YYYY-MM-DD) for comparison to avoid timezone issues
-        const transactionDateStr = new Date(transaction.date).toISOString().split('T')[0];
+        // Use local date for comparison to match user's timezone
+        const d = new Date(transaction.date);
+        const transactionDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         
         if (dateFrom && transactionDateStr < dateFrom) return false;
         if (dateTo && transactionDateStr > dateTo) return false;
