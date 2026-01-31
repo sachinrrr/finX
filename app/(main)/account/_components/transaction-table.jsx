@@ -94,16 +94,11 @@ export function TransactionTable({ transactions, currency = "USD" }) {
     // Apply date range filter
     if (dateFrom || dateTo) {
       result = result.filter((transaction) => {
-        const transactionDate = new Date(transaction.date);
-        const fromDate = dateFrom ? new Date(dateFrom) : null;
-        const toDate = dateTo ? new Date(dateTo) : null;
-
-        if (fromDate && transactionDate < fromDate) return false;
-        if (toDate) {
-          const endOfDay = new Date(toDate);
-          endOfDay.setHours(23, 59, 59, 999);
-          if (transactionDate > endOfDay) return false;
-        }
+        // Extract just the date part (YYYY-MM-DD) for comparison to avoid timezone issues
+        const transactionDateStr = new Date(transaction.date).toISOString().split('T')[0];
+        
+        if (dateFrom && transactionDateStr < dateFrom) return false;
+        if (dateTo && transactionDateStr > dateTo) return false;
 
         return true;
       });
