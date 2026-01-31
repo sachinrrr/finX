@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -27,6 +27,32 @@ export function DashboardOverview({ accounts, transactions }) {
   // Ensure consistent initial state to prevent hydration mismatch
   const defaultAccountId = accounts?.find((a) => a.isDefault)?.id || accounts?.[0]?.id || null;
   const [selectedAccountId, setSelectedAccountId] = useState(defaultAccountId);
+  
+  // Month filter for expense breakdown - default to current month
+  const currentDate = new Date();
+  const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthKey);
+
+  // Generate list of months from transactions
+  const availableMonths = useMemo(() => {
+    const months = new Set();
+    transactions?.forEach((t) => {
+      const d = new Date(t.date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      months.add(key);
+    });
+    // Always include current month
+    months.add(currentMonthKey);
+    // Sort descending (newest first)
+    return Array.from(months).sort((a, b) => b.localeCompare(a));
+  }, [transactions, currentMonthKey]);
+
+  // Format month key to display name
+  const formatMonthDisplay = (monthKey) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+  };
 
   // Filter transactions for selected account
   const accountTransactions = transactions?.filter(
@@ -38,19 +64,19 @@ export function DashboardOverview({ accounts, transactions }) {
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 
-  // Calculate expense breakdown for current month
-  const currentDate = new Date();
-  const currentMonthExpenses = accountTransactions.filter((t) => {
+  // Calculate expense breakdown for selected month
+  const [selectedYear, selectedMonthNum] = selectedMonth.split('-').map(Number);
+  const selectedMonthExpenses = accountTransactions.filter((t) => {
     const transactionDate = new Date(t.date);
     return (
       t.type === "EXPENSE" &&
-      transactionDate.getMonth() === currentDate.getMonth() &&
-      transactionDate.getFullYear() === currentDate.getFullYear()
+      transactionDate.getMonth() === selectedMonthNum - 1 &&
+      transactionDate.getFullYear() === selectedYear
     );
   });
 
   // Group expenses by category
-  const expensesByCategory = currentMonthExpenses.reduce((acc, transaction) => {
+  const expensesByCategory = selectedMonthExpenses.reduce((acc, transaction) => {
     const category = transaction.category;
     if (!acc[category]) {
       acc[category] = 0;
@@ -140,10 +166,25 @@ export function DashboardOverview({ accounts, transactions }) {
 
       {/* Expense Breakdown Card */}
       <Card className="overflow-hidden">
-        <CardHeader className="pb-3">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <CardTitle className="text-base font-semibold">
             Monthly Expense Breakdown
           </CardTitle>
+          <Select
+            value={selectedMonth}
+            onValueChange={setSelectedMonth}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableMonths.map((monthKey) => (
+                <SelectItem key={monthKey} value={monthKey}>
+                  {formatMonthDisplay(monthKey)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent className="pt-0 pb-5">
           {pieChartData.length === 0 ? (
