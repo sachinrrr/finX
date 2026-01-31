@@ -13,13 +13,37 @@ const nextConfig = {
       ignoreDuringBuilds: true,
     },
 
-      experimental:{
-        serverActions: {
-          bodySizeLimit:"10mb"
-        }
+    experimental:{
+      serverActions: {
+        bodySizeLimit:"10mb"
       }
-    };
+    },
 
-      export default nextConfig;
+    // Disable caching for dynamic routes
+    async headers() {
+      return [
+        {
+          source: '/dashboard',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            },
+          ],
+        },
+        {
+          source: '/account/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            },
+          ],
+        },
+      ];
+    },
+  };
+
+export default nextConfig;
 
 
