@@ -69,7 +69,7 @@ export function BudgetProgress({ initialBudget, currentExpenses, currency = "USD
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex-1">
           <CardTitle className="text-sm font-medium">
-            Monthly Budget (Default Account)
+            Monthly Budget ({new Date().toLocaleString('default', { month: 'long', year: 'numeric' })})
           </CardTitle>
           <div className="flex items-center gap-2 mt-1">
             {isEditing ? (
