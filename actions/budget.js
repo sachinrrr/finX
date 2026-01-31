@@ -28,18 +28,23 @@ export async function getCurrentBudget(accountId) {
       },
     });
 
-    // Calculate current month date range using UTC to avoid timezone issues
+    // Calculate current month date range
+    // Adjust for IST timezone (UTC+5:30) since transactions are stored in IST
     const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = now.getUTCMonth();
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+    const istNow = new Date(now.getTime() + IST_OFFSET_MS);
     
-    // Start of current month (UTC)
-    const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
-    // End of current month (UTC) - last day at 23:59:59.999
-    const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+    const year = istNow.getUTCFullYear();
+    const month = istNow.getUTCMonth();
+    
+    // Start of current month in IST (converted to UTC for database query)
+    const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0) - IST_OFFSET_MS);
+    // End of current month in IST (converted to UTC for database query)
+    const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999) - IST_OFFSET_MS);
 
     console.log("Budget calculation:", {
-      serverTime: now.toISOString(),
+      serverTimeUTC: now.toISOString(),
+      istTime: istNow.toISOString(),
       year,
       month: month + 1,
       startOfMonth: startOfMonth.toISOString(),
