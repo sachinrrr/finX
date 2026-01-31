@@ -48,15 +48,10 @@ export async function GET() {
       where: { userId: user.id, isDefault: true },
     });
 
-    // Get all transactions for this month
+    // Get all recent transactions (last 10) to see actual stored dates
     const transactions = await db.transaction.findMany({
       where: {
         userId: user.id,
-        type: "EXPENSE",
-        date: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
         ...(defaultAccount ? { accountId: defaultAccount.id } : {}),
       },
       select: {
@@ -64,8 +59,10 @@ export async function GET() {
         amount: true,
         date: true,
         description: true,
+        type: true,
       },
       orderBy: { date: "desc" },
+      take: 10,
     });
 
     // Calculate total
