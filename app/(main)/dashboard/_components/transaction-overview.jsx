@@ -30,31 +30,17 @@ export function DashboardOverview({ accounts, transactions }) {
   
   // Month filter for expense breakdown - default to current month
   const currentDate = new Date();
-  const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-  const [selectedMonth, setSelectedMonth] = useState(currentMonthKey);
+  const currentYear = currentDate.getFullYear();
+  const currentMonthNum = currentDate.getMonth(); // 0-indexed
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthNum);
 
-  // Generate list of months from transactions
-  const availableMonths = useMemo(() => {
-    const months = new Set();
-    transactions?.forEach((t) => {
-      const d = new Date(t.date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      months.add(key);
-    });
-    // Always include current month
-    months.add(currentMonthKey);
-    // Sort descending (newest first)
-    return Array.from(months).sort((a, b) => b.localeCompare(a));
-  }, [transactions, currentMonthKey]);
+  // All 12 months for the current year
+  const allMonths = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
-  // Format month key to display name
-  const formatMonthDisplay = (monthKey) => {
-    const [year, month] = monthKey.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-    return date.toLocaleString('default', { month: 'long', year: 'numeric' });
-  };
-
-  // Filter transactions for selected account
+  // Get recent transactions (last 5)
   const accountTransactions = transactions?.filter(
     (t) => t.accountId === selectedAccountId
   ) || [];
@@ -64,14 +50,13 @@ export function DashboardOverview({ accounts, transactions }) {
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 
-  // Calculate expense breakdown for selected month
-  const [selectedYear, selectedMonthNum] = selectedMonth.split('-').map(Number);
+  // Calculate expense breakdown for selected month (current year only)
   const selectedMonthExpenses = accountTransactions.filter((t) => {
     const transactionDate = new Date(t.date);
     return (
       t.type === "EXPENSE" &&
-      transactionDate.getMonth() === selectedMonthNum - 1 &&
-      transactionDate.getFullYear() === selectedYear
+      transactionDate.getMonth() === selectedMonth &&
+      transactionDate.getFullYear() === currentYear
     );
   });
 
@@ -171,16 +156,16 @@ export function DashboardOverview({ accounts, transactions }) {
             Monthly Expense Breakdown
           </CardTitle>
           <Select
-            value={selectedMonth}
-            onValueChange={setSelectedMonth}
+            value={String(selectedMonth)}
+            onValueChange={(val) => setSelectedMonth(Number(val))}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Select month" />
             </SelectTrigger>
             <SelectContent>
-              {availableMonths.map((monthKey) => (
-                <SelectItem key={monthKey} value={monthKey}>
-                  {formatMonthDisplay(monthKey)}
+              {allMonths.map((monthName, index) => (
+                <SelectItem key={index} value={String(index)}>
+                  {monthName}
                 </SelectItem>
               ))}
             </SelectContent>
